@@ -1,14 +1,27 @@
-FROM ubuntu:22.04
+name: Build and Push Docker Image
 
-RUN apt-get update && apt-get install -y python3 python3-pip
+on:
+  push:
+    branches:
+      - main
 
-RUN pip3 install flask==3.0.*
+jobs:
+  docker:
+    runs-on: ubuntu-latest
 
-WORKDIR /app
-COPY hello.py /app
+    steps:
+      - name: Get code
+        uses: actions/checkout@v4
 
-ENV FLASK_APP=hello.py
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-EXPOSE 8000
-
-CMD ["flask", "run", "--host=0.0.0.0", "--port=8000"]
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ansh58/flask:latest
